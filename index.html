@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subscription Tracker</title>
+  <meta name="description" content="Keep track of all your subscriptions, login emails and password hints in one private place." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>📋 Subscription Tracker</h1>
+      <p class="tagline">All your subscriptions, login emails &amp; password hints in one place — stored privately on your device.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Add / edit form -->
+    <section class="card form-card">
+      <h2 id="form-title">Add a subscription</h2>
+      <form id="sub-form" autocomplete="off">
+        <input type="hidden" id="edit-id" value="" />
+
+        <div class="field">
+          <label for="service">Service / Platform</label>
+          <select id="service" required>
+            <option value="" disabled selected>— Choose a platform —</option>
+            <optgroup label="Streaming">
+              <option value="Netflix">Netflix</option>
+              <option value="Amazon Prime Video">Amazon Prime Video</option>
+              <option value="Disney+">Disney+</option>
+              <option value="Hulu">Hulu</option>
+              <option value="HBO Max">HBO Max</option>
+              <option value="Apple TV+">Apple TV+</option>
+              <option value="YouTube Premium">YouTube Premium</option>
+              <option value="Paramount+">Paramount+</option>
+              <option value="Peacock">Peacock</option>
+            </optgroup>
+            <optgroup label="Music">
+              <option value="Spotify">Spotify</option>
+              <option value="Apple Music">Apple Music</option>
+              <option value="YouTube Music">YouTube Music</option>
+              <option value="Amazon Music">Amazon Music</option>
+              <option value="Tidal">Tidal</option>
+            </optgroup>
+            <optgroup label="Shopping / Membership">
+              <option value="Amazon Prime">Amazon Prime</option>
+              <option value="Costco">Costco</option>
+              <option value="Walmart+">Walmart+</option>
+            </optgroup>
+            <optgroup label="Developer / Productivity">
+              <option value="GitHub">GitHub</option>
+              <option value="GitLab">GitLab</option>
+              <option value="Google One">Google One</option>
+              <option value="Microsoft 365">Microsoft 365</option>
+              <option value="iCloud+">iCloud+</option>
+              <option value="Dropbox">Dropbox</option>
+              <option value="Notion">Notion</option>
+              <option value="Adobe Creative Cloud">Adobe Creative Cloud</option>
+              <option value="ChatGPT Plus">ChatGPT Plus</option>
+            </optgroup>
+            <optgroup label="Gaming">
+              <option value="Xbox Game Pass">Xbox Game Pass</option>
+              <option value="PlayStation Plus">PlayStation Plus</option>
+              <option value="Nintendo Switch Online">Nintendo Switch Online</option>
+            </optgroup>
+            <option value="__other__">Other (type your own)…</option>
+          </select>
+        </div>
+
+        <div class="field" id="other-field" hidden>
+          <label for="service-other">Custom service name</label>
+          <input type="text" id="service-other" placeholder="e.g. My local gym" />
+        </div>
+
+        <div class="field">
+          <label for="email">Login email address</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+        </div>
+
+        <div class="field">
+          <label for="hint">Password hint <span class="muted">(hint only — never store your real password)</span></label>
+          <input type="text" id="hint" placeholder="e.g. starts with my dog's name" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="cost">Monthly cost <span class="muted">(optional)</span></label>
+            <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label for="renewal">Renewal date <span class="muted">(optional)</span></label>
+            <input type="date" id="renewal" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submit-btn">Add subscription</button>
+          <button type="button" class="btn btn-ghost" id="cancel-btn" hidden>Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Summary + search -->
+    <section class="toolbar">
+      <div class="summary" id="summary">No subscriptions yet.</div>
+      <input type="search" id="search" class="search" placeholder="🔍 Search services or emails…" />
+    </section>
+
+    <!-- List -->
+    <section id="list" class="list"></section>
+
+    <section class="danger-zone" id="danger-zone" hidden>
+      <button type="button" class="btn btn-danger-outline" id="export-btn">Export (JSON)</button>
+      <button type="button" class="btn btn-danger-outline" id="clear-btn">Delete all</button>
+    </section>
+  </main>
+
+  <footer class="site-footer container">
+    <p>🔒 Your data is stored only in <strong>this browser</strong> (localStorage). Nothing is uploaded anywhere.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
