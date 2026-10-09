@@ -11,6 +11,8 @@
     "Peacock": "🦚", "Spotify": "🎵", "Apple Music": "🎶", "YouTube Music": "🎧",
     "Amazon Music": "🎼", "Tidal": "🌊", "Amazon Prime": "📦", "Costco": "🛒",
     "Walmart+": "🛍️", "GitHub": "🐙", "GitLab": "🦊", "Google One": "☁️",
+    "Google Workspace": "📧", "Gmail": "✉️", "YouTube TV": "📺",
+    "Google Play Pass": "🎮", "Google Fi": "📱",
     "Microsoft 365": "🪟", "iCloud+": "☁️", "Dropbox": "📂", "Notion": "📝",
     "Adobe Creative Cloud": "🎨", "ChatGPT Plus": "🤖", "Xbox Game Pass": "🎮",
     "PlayStation Plus": "🎮", "Nintendo Switch Online": "🎮"
