@@ -1,32 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#6c5ce7" />
   <title>Subscription Tracker</title>
-  <meta name="description" content="Keep track of all your subscriptions, login emails and password hints in one private place." />
+  <meta name="description" content="Keep track of all your subscriptions, login emails and password hints in one friendly, private place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <h1>📋 Subscription Tracker</h1>
-      <p class="tagline">All your subscriptions, login emails &amp; password hints in one place — stored privately on your device.</p>
+      <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle light / dark">🌙</button>
+      <div class="logo">📺</div>
+      <h1>Subscription Tracker</h1>
+      <p class="tagline">Keep all your subscriptions, login emails &amp; password hints in one friendly place — saved privately on your device. 🔒</p>
+
+      <!-- At-a-glance stats -->
+      <div class="stats" id="stats" hidden>
+        <div class="stat">
+          <span class="stat-num" id="stat-count">0</span>
+          <span class="stat-label">subscriptions</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-monthly">$0</span>
+          <span class="stat-label">per month</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-yearly">$0</span>
+          <span class="stat-label">per year</span>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="container">
     <!-- Add / edit form -->
     <section class="card form-card">
-      <h2 id="form-title">Add a subscription</h2>
+      <h2 id="form-title"><span class="emoji">➕</span> Add a subscription</h2>
+      <p class="card-sub" id="form-sub">Fill in the details below and it saves automatically.</p>
       <form id="sub-form" autocomplete="off">
         <input type="hidden" id="edit-id" value="" />
 
         <div class="field">
-          <label for="service">Service / Platform</label>
+          <label for="service">Which service? 📦</label>
           <select id="service" required>
             <option value="" disabled selected>— Choose a platform —</option>
-            <optgroup label="Streaming">
+            <optgroup label="🎬 Streaming">
               <option value="Netflix">Netflix</option>
               <option value="Amazon Prime Video">Amazon Prime Video</option>
               <option value="Disney+">Disney+</option>
@@ -37,19 +60,19 @@
               <option value="Paramount+">Paramount+</option>
               <option value="Peacock">Peacock</option>
             </optgroup>
-            <optgroup label="Music">
+            <optgroup label="🎵 Music">
               <option value="Spotify">Spotify</option>
               <option value="Apple Music">Apple Music</option>
               <option value="YouTube Music">YouTube Music</option>
               <option value="Amazon Music">Amazon Music</option>
               <option value="Tidal">Tidal</option>
             </optgroup>
-            <optgroup label="Shopping / Membership">
+            <optgroup label="🛒 Shopping / Membership">
               <option value="Amazon Prime">Amazon Prime</option>
               <option value="Costco">Costco</option>
               <option value="Walmart+">Walmart+</option>
             </optgroup>
-            <optgroup label="Google">
+            <optgroup label="🔎 Google">
               <option value="Google One">Google One</option>
               <option value="Google Workspace">Google Workspace (Gmail)</option>
               <option value="Gmail">Gmail</option>
@@ -57,7 +80,7 @@
               <option value="Google Play Pass">Google Play Pass</option>
               <option value="Google Fi">Google Fi</option>
             </optgroup>
-            <optgroup label="Developer / Productivity">
+            <optgroup label="💻 Developer / Productivity">
               <option value="GitHub">GitHub</option>
               <option value="GitLab">GitLab</option>
               <option value="Microsoft 365">Microsoft 365</option>
@@ -67,43 +90,47 @@
               <option value="Adobe Creative Cloud">Adobe Creative Cloud</option>
               <option value="ChatGPT Plus">ChatGPT Plus</option>
             </optgroup>
-            <optgroup label="Gaming">
+            <optgroup label="🎮 Gaming">
               <option value="Xbox Game Pass">Xbox Game Pass</option>
               <option value="PlayStation Plus">PlayStation Plus</option>
               <option value="Nintendo Switch Online">Nintendo Switch Online</option>
             </optgroup>
-            <option value="__other__">Other (type your own)…</option>
+            <option value="__other__">✏️ Other (type your own)…</option>
           </select>
         </div>
 
         <div class="field" id="other-field" hidden>
-          <label for="service-other">Custom service name</label>
+          <label for="service-other">What's it called?</label>
           <input type="text" id="service-other" placeholder="e.g. My local gym" />
         </div>
 
         <div class="field">
-          <label for="email">Login email address</label>
+          <label for="email">Login email ✉️</label>
           <input type="email" id="email" placeholder="you@example.com" required />
         </div>
 
         <div class="field">
-          <label for="hint">Password hint <span class="muted">(hint only — never store your real password)</span></label>
+          <label for="hint">Password hint 💡</label>
           <input type="text" id="hint" placeholder="e.g. starts with my dog's name" />
+          <small class="help">Only a <strong>hint</strong> — for safety, never store your real password here.</small>
         </div>
 
         <div class="field-row">
           <div class="field">
             <label for="cost">Monthly cost <span class="muted">(optional)</span></label>
-            <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="cost" min="0" step="0.01" placeholder="0.00" />
+            </div>
           </div>
           <div class="field">
-            <label for="renewal">Renewal date <span class="muted">(optional)</span></label>
+            <label for="renewal">Renews on <span class="muted">(optional)</span></label>
             <input type="date" id="renewal" />
           </div>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary" id="submit-btn">Add subscription</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">➕ Add subscription</button>
           <button type="button" class="btn btn-ghost" id="cancel-btn" hidden>Cancel</button>
         </div>
       </form>
@@ -119,16 +146,19 @@
     <section id="list" class="list"></section>
 
     <section class="backup-zone">
-      <button type="button" class="btn btn-ghost" id="export-btn">⬇️ Export backup</button>
-      <button type="button" class="btn btn-ghost" id="import-btn">⬆️ Import backup</button>
+      <button type="button" class="btn btn-soft" id="export-btn">⬇️ Export backup</button>
+      <button type="button" class="btn btn-soft" id="import-btn">⬆️ Import backup</button>
       <input type="file" id="import-file" accept="application/json,.json" hidden />
       <button type="button" class="btn btn-danger-outline" id="clear-btn" hidden>🗑️ Delete all</button>
     </section>
   </main>
 
   <footer class="site-footer container">
-    <p>🔒 Your data is stored only in <strong>this browser</strong> (localStorage). Nothing is uploaded anywhere.</p>
+    <p>🔒 Your data is stored only in <strong>this browser</strong> — nothing is ever uploaded. Made with 💜</p>
   </footer>
+
+  <!-- Friendly toast notifications -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script src="app.js"></script>
 </body>

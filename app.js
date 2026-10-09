@@ -3,6 +3,7 @@
   "use strict";
 
   const STORAGE_KEY = "subscription-tracker.v1";
+  const THEME_KEY = "subscription-tracker.theme";
 
   // Emoji badges for known services (fallback uses first letter).
   const ICONS = {
@@ -18,6 +19,23 @@
     "PlayStation Plus": "🎮", "Nintendo Switch Online": "🎮"
   };
 
+  // Pleasant gradient palette for badges (picked by service name).
+  const PALETTE = [
+    "linear-gradient(135deg,#ff6b6b,#ee5253)",
+    "linear-gradient(135deg,#5f27cd,#8854d0)",
+    "linear-gradient(135deg,#00b894,#55efc4)",
+    "linear-gradient(135deg,#0984e3,#74b9ff)",
+    "linear-gradient(135deg,#fdcb6e,#e17055)",
+    "linear-gradient(135deg,#e84393,#fd79a8)",
+    "linear-gradient(135deg,#00cec9,#81ecec)",
+    "linear-gradient(135deg,#6c5ce7,#a29bfe)"
+  ];
+  function badgeColor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+    return PALETTE[h % PALETTE.length];
+  }
+
   // --- DOM refs ---
   const form = document.getElementById("sub-form");
   const serviceSel = document.getElementById("service");
@@ -31,6 +49,7 @@
   const submitBtn = document.getElementById("submit-btn");
   const cancelBtn = document.getElementById("cancel-btn");
   const formTitle = document.getElementById("form-title");
+  const formSub = document.getElementById("form-sub");
   const listEl = document.getElementById("list");
   const summaryEl = document.getElementById("summary");
   const searchInput = document.getElementById("search");
@@ -38,9 +57,43 @@
   const exportBtn = document.getElementById("export-btn");
   const importBtn = document.getElementById("import-btn");
   const importFile = document.getElementById("import-file");
+  const themeToggle = document.getElementById("theme-toggle");
+  const statsEl = document.getElementById("stats");
+  const statCount = document.getElementById("stat-count");
+  const statMonthly = document.getElementById("stat-monthly");
+  const statYearly = document.getElementById("stat-yearly");
+  const toastEl = document.getElementById("toast");
 
   let subscriptions = load();
   let searchTerm = "";
+
+  // --- Theme ---
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  }
+  (function initTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+    if (!saved) {
+      saved = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    applyTheme(saved);
+  })();
+  themeToggle.addEventListener("click", () => {
+    const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  });
+
+  // --- Toast ---
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+  }
 
   // --- Storage helpers ---
   function load() {
@@ -56,7 +109,7 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
     } catch (e) {
-      alert("Could not save data to this browser. Storage may be full or disabled.");
+      toast("⚠️ Couldn't save — storage may be full or disabled.");
     }
   }
 
@@ -74,6 +127,12 @@
   }
   function fmtMoney(n) {
     return Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function fmtDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso + "T00:00:00");
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
   }
 
   // --- Dropdown "Other" toggle ---
@@ -94,6 +153,7 @@
       if (!service) { otherInput.focus(); return; }
     }
 
+    const isEdit = !!editIdInput.value;
     const record = {
       id: editIdInput.value || uid(),
       service: service,
@@ -103,7 +163,7 @@
       renewal: renewalInput.value || null
     };
 
-    if (editIdInput.value) {
+    if (isEdit) {
       const idx = subscriptions.findIndex((s) => s.id === editIdInput.value);
       if (idx !== -1) subscriptions[idx] = record;
     } else {
@@ -113,6 +173,7 @@
     save();
     resetForm();
     render();
+    toast(isEdit ? "✅ Saved your changes" : `🎉 Added ${service}`);
   });
 
   cancelBtn.addEventListener("click", resetForm);
@@ -122,8 +183,9 @@
     editIdInput.value = "";
     otherField.hidden = true;
     otherInput.required = false;
-    formTitle.textContent = "Add a subscription";
-    submitBtn.textContent = "Add subscription";
+    formTitle.innerHTML = '<span class="emoji">➕</span> Add a subscription';
+    formSub.textContent = "Fill in the details below and it saves automatically.";
+    submitBtn.textContent = "➕ Add subscription";
     cancelBtn.hidden = true;
   }
 
@@ -148,8 +210,9 @@
     renewalInput.value = s.renewal || "";
     editIdInput.value = s.id;
 
-    formTitle.textContent = "Edit subscription";
-    submitBtn.textContent = "Save changes";
+    formTitle.innerHTML = '<span class="emoji">✏️</span> Edit subscription';
+    formSub.textContent = "Update the details and save your changes.";
+    submitBtn.textContent = "💾 Save changes";
     cancelBtn.hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -161,6 +224,7 @@
     subscriptions = subscriptions.filter((x) => x.id !== id);
     save();
     render();
+    toast(`🗑️ Removed ${s.service}`);
   }
 
   // --- Search ---
@@ -169,15 +233,17 @@
     render();
   });
 
-  // --- Danger zone ---
+  // --- Backup zone ---
   clearBtn.addEventListener("click", () => {
     if (!confirm("Delete ALL subscriptions? This cannot be undone.")) return;
     subscriptions = [];
     save();
     render();
+    toast("🧹 Cleared everything");
   });
 
   exportBtn.addEventListener("click", () => {
+    if (subscriptions.length === 0) { toast("Nothing to export yet."); return; }
     const blob = new Blob([JSON.stringify(subscriptions, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -185,6 +251,7 @@
     a.download = "subscriptions.json";
     a.click();
     URL.revokeObjectURL(url);
+    toast("⬇️ Backup downloaded");
   });
 
   // Import a previously exported backup file (works even on a fresh device).
@@ -198,12 +265,12 @@
       try {
         data = JSON.parse(reader.result);
       } catch (e) {
-        alert("That file isn't valid backup JSON.");
+        toast("⚠️ That file isn't valid backup JSON.");
         importFile.value = "";
         return;
       }
       if (!Array.isArray(data)) {
-        alert("That doesn't look like a subscriptions backup file.");
+        toast("⚠️ That doesn't look like a backup file.");
         importFile.value = "";
         return;
       }
@@ -220,7 +287,7 @@
         }));
 
       if (incoming.length === 0) {
-        alert("No subscriptions found in that file.");
+        toast("No subscriptions found in that file.");
         importFile.value = "";
         return;
       }
@@ -237,7 +304,7 @@
       save();
       render();
       importFile.value = "";
-      alert(`Imported ${incoming.length} subscription(s).`);
+      toast(`⬆️ Imported ${incoming.length} subscription(s)`);
     };
     reader.readAsText(file);
   });
@@ -252,17 +319,21 @@
       );
     });
 
-    // Summary
+    // Summary + stats
     const total = subscriptions.length;
     const monthly = subscriptions.reduce((sum, s) => sum + (s.cost || 0), 0);
     if (total === 0) {
       summaryEl.textContent = "No subscriptions yet.";
       clearBtn.hidden = true;
+      statsEl.hidden = true;
     } else {
       summaryEl.innerHTML =
-        `<strong>${total}</strong> subscription${total === 1 ? "" : "s"}` +
-        (monthly > 0 ? ` · ~<strong>$${fmtMoney(monthly)}</strong>/mo` : "");
+        `You're tracking <strong>${total}</strong> subscription${total === 1 ? "" : "s"}`;
       clearBtn.hidden = false;
+      statsEl.hidden = false;
+      statCount.textContent = total;
+      statMonthly.textContent = "$" + fmtMoney(monthly);
+      statYearly.textContent = "$" + fmtMoney(monthly * 12);
     }
 
     // List
@@ -270,9 +341,9 @@
     if (visible.length === 0) {
       const empty = document.createElement("div");
       empty.className = "empty";
-      empty.textContent = total === 0
-        ? "Add your first subscription using the form above ☝️"
-        : "No matches for your search.";
+      empty.innerHTML = total === 0
+        ? '<span class="big">👋</span>No subscriptions yet — add your first one using the form above!'
+        : '<span class="big">🔍</span>No matches for your search.';
       listEl.appendChild(empty);
       return;
     }
@@ -285,14 +356,14 @@
       const costPill = s.cost != null
         ? `<span class="pill">$${fmtMoney(s.cost)}/mo</span>` : "";
       const renewalRow = s.renewal
-        ? `<div class="row"><span class="label">Renews</span><span>${escapeHtml(s.renewal)}</span></div>` : "";
+        ? `<div class="row"><span class="label">Renews</span><span>${escapeHtml(fmtDate(s.renewal))}</span></div>` : "";
       const hintRow = s.hint
         ? `<div class="row"><span class="label">Hint</span><span>${escapeHtml(s.hint)}</span></div>` : "";
 
       item.innerHTML = `
         <div class="sub-main">
           <div class="sub-service">
-            <span class="badge">${escapeHtml(iconFor(s.service))}</span>
+            <span class="badge" style="background:${badgeColor(s.service)}">${escapeHtml(iconFor(s.service))}</span>
             ${escapeHtml(s.service)}
           </div>
           <div class="sub-meta">
