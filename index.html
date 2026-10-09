@@ -111,9 +111,11 @@
     <!-- List -->
     <section id="list" class="list"></section>
 
-    <section class="danger-zone" id="danger-zone" hidden>
-      <button type="button" class="btn btn-danger-outline" id="export-btn">Export (JSON)</button>
-      <button type="button" class="btn btn-danger-outline" id="clear-btn">Delete all</button>
+    <section class="backup-zone">
+      <button type="button" class="btn btn-ghost" id="export-btn">⬇️ Export backup</button>
+      <button type="button" class="btn btn-ghost" id="import-btn">⬆️ Import backup</button>
+      <input type="file" id="import-file" accept="application/json,.json" hidden />
+      <button type="button" class="btn btn-danger-outline" id="clear-btn" hidden>🗑️ Delete all</button>
     </section>
   </main>
 

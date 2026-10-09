@@ -16,8 +16,26 @@ Keep track of which **service** each account is on, the **login email**, and a
 - **Login email** per subscription.
 - **Password hint only** (safe — no real passwords stored).
 - Optional **monthly cost** and **renewal date**, with a running **monthly total**.
-- **Search**, **edit**, **delete**, **export to JSON**.
+- **Search**, **edit**, **delete**.
+- **Export** a JSON backup and **Import** it back — on the same or a new device.
 - Works fully offline. No accounts, no tracking, no backend.
+
+## 🔁 How your data is saved & how to check it later
+
+Your list is saved **automatically** in your browser's `localStorage` the moment
+you add/edit/delete — there's no "save" button. To look at it again later, just
+reopen the app:
+
+- **If hosted on GitHub Pages:** bookmark the URL
+  (`https://<your-username>.github.io/subscription-tracker/`) and open it anytime —
+  your list is still there.
+- **If opened as a local file:** reopen `index.html` in the **same browser on the
+  same device**.
+
+Your data stays as long as you use the **same browser on the same device** and
+don't clear browsing data. It does **not** sync across devices or browsers.
+To move your data (new phone, new laptop, different browser), use **Export backup**
+on the old one and **Import backup** on the new one.
 
 ## 🚀 Use it
 

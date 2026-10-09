@@ -179,10 +179,11 @@ input:focus, select:focus {
   border-radius: var(--radius);
 }
 
-.danger-zone {
+.backup-zone {
   display: flex;
   gap: 12px;
   justify-content: center;
+  flex-wrap: wrap;
   margin: 28px 0;
 }
 

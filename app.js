@@ -32,9 +32,10 @@
   const listEl = document.getElementById("list");
   const summaryEl = document.getElementById("summary");
   const searchInput = document.getElementById("search");
-  const dangerZone = document.getElementById("danger-zone");
   const clearBtn = document.getElementById("clear-btn");
   const exportBtn = document.getElementById("export-btn");
+  const importBtn = document.getElementById("import-btn");
+  const importFile = document.getElementById("import-file");
 
   let subscriptions = load();
   let searchTerm = "";
@@ -184,6 +185,61 @@
     URL.revokeObjectURL(url);
   });
 
+  // Import a previously exported backup file (works even on a fresh device).
+  importBtn.addEventListener("click", () => importFile.click());
+  importFile.addEventListener("change", () => {
+    const file = importFile.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try {
+        data = JSON.parse(reader.result);
+      } catch (e) {
+        alert("That file isn't valid backup JSON.");
+        importFile.value = "";
+        return;
+      }
+      if (!Array.isArray(data)) {
+        alert("That doesn't look like a subscriptions backup file.");
+        importFile.value = "";
+        return;
+      }
+      // Keep only valid-looking records and give them fresh ids to avoid clashes.
+      const incoming = data
+        .filter((d) => d && typeof d.service === "string")
+        .map((d) => ({
+          id: uid(),
+          service: d.service,
+          email: typeof d.email === "string" ? d.email : "",
+          hint: typeof d.hint === "string" ? d.hint : "",
+          cost: d.cost != null && !isNaN(d.cost) ? Number(d.cost) : null,
+          renewal: typeof d.renewal === "string" ? d.renewal : null
+        }));
+
+      if (incoming.length === 0) {
+        alert("No subscriptions found in that file.");
+        importFile.value = "";
+        return;
+      }
+
+      let mode = "merge";
+      if (subscriptions.length > 0) {
+        mode = confirm(
+          `Import ${incoming.length} subscription(s).\n\n` +
+          "OK = ADD them to your current list.\n" +
+          "Cancel = REPLACE your current list with the file."
+        ) ? "merge" : "replace";
+      }
+      subscriptions = mode === "merge" ? subscriptions.concat(incoming) : incoming;
+      save();
+      render();
+      importFile.value = "";
+      alert(`Imported ${incoming.length} subscription(s).`);
+    };
+    reader.readAsText(file);
+  });
+
   // --- Render ---
   function render() {
     const visible = subscriptions.filter((s) => {
@@ -199,12 +255,12 @@
     const monthly = subscriptions.reduce((sum, s) => sum + (s.cost || 0), 0);
     if (total === 0) {
       summaryEl.textContent = "No subscriptions yet.";
-      dangerZone.hidden = true;
+      clearBtn.hidden = true;
     } else {
       summaryEl.innerHTML =
         `<strong>${total}</strong> subscription${total === 1 ? "" : "s"}` +
         (monthly > 0 ? ` · ~<strong>$${fmtMoney(monthly)}</strong>/mo` : "");
-      dangerZone.hidden = false;
+      clearBtn.hidden = false;
     }
 
     // List
